@@ -9,7 +9,7 @@ This is an asynchronous server/client implementation of TCP/UDP socket, and TCP-
 It is an implementation of a TCP server that accepts multiple connections.
 Also, UDP transmission / reception that does not discard the socket by maintaining a specific port is possible.
 
-Supports .NET4.5.1, .NET Standard2.0
+Supports .NET Standard2.0
 
 ## Requirement
 [Xb.Core](https://www.nuget.org/packages/Xb.Core/)  
