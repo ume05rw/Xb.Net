@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>Xamarin &amp; .NET Core Ready, Tcp and Udp socket async-implementation and Utilities.</Description>
+    <Version>1.0.0.0</Version>
+    <Authors>Do-Be's</Authors>
+    <PackageLicenseUrl>https://github.com/ume05rw/Xb.Net/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/ume05rw/Xb.Net</PackageProjectUrl>
+    <PackageIconUrl />
+    <RepositoryUrl>https://github.com/ume05rw/Xb.Net.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <NeutralLanguage>ja</NeutralLanguage>
+    <Copyright>Do-Be's</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
