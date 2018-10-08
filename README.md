@@ -43,9 +43,9 @@ ex) Udp, Accept Any:
 
 
     var udp = new Xb.Net.Udp(10241);
-    udp.OnRecieved += (object e, byte[] bytes) =>
+    udp.OnRecieved += (object e, Xb.Net.RemoteData rdata) =>
     {
-        System.Diagnostics.Debug.WriteLine(BitConverter.ToString(bytes));
+        System.Diagnostics.Debug.WriteLine(BitConverter.ToString(rdata.Bytes));
         
         // When bytes [0] - bytes [3] is an IP address v4. 
         udp.SendTo(new byte[] { 0x31, 0x32, 0x33 }, new IPAddress(bytes.Take(4).ToArray()), 80);
@@ -191,10 +191,8 @@ Namespace and Methods are...
           |
           +- Udp(instance)
           |   |
-          |   +- EventHandler<byte[]> OnRecieved
+          |   +- EventHandler<RemoteData> OnRecieved
           |   |  On data recieved from remote host.
-          |   |  * UDP is connectionless protocol, It can not obtain remote host information.
-          |   |  * If host information is required, include in the data.
           |   |
           |   |
           |   +- [Constructor]()
