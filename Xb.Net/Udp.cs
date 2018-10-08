@@ -101,12 +101,7 @@ namespace Xb.Net
         /// <summary>
         /// On data recieved from remote host.
         /// </summary>
-        /// <remarks>
-        /// UDP is connectionless protocol, It can not obtain remote host information.
-        /// If host information is required, include in the data.
-        /// </remarks>
-        /// 
-        public EventHandler<byte[]> OnRecieved;
+        public EventHandler<RemoteData> OnRecieved;
 
         /// <summary>
         /// Socket instance
@@ -210,15 +205,19 @@ namespace Xb.Net
             this._socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
             this._socket.Bind(this.LocalEndPoint);
 
-            var socSet = new SocketSet(this._socket);
+            var sset = new SocketSet(this._socket);
+            var endPoint = new IPEndPoint(IPAddress.Any, 0) as EndPoint;
 
-            this._socket.BeginReceive(
-                socSet.ReceiveBuffer,
+            // THANKS bidasknakayama!
+            // Remote info could be acquired on UDP.
+            this._socket.BeginReceiveMessageFrom(
+                sset.ReceiveBuffer,
                 0,
-                socSet.ReceiveBuffer.Length,
+                sset.ReceiveBuffer.Length,
                 SocketFlags.None,
+                ref endPoint,
                 this.OnRecievedPrivate,
-                socSet);
+                sset);
 
             Xb.Util.Out($"Listen Started.");
         }
@@ -236,9 +235,12 @@ namespace Xb.Net
             var sset = (SocketSet)ar.AsyncState;
 
             var length = 0;
+            var sFlags = SocketFlags.None;
+            var endPoint = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
+            IPPacketInformation pInfo;
             try
             {
-                length = sset.Socket.EndReceive(ar);
+                length = sset.Socket.EndReceiveMessageFrom(ar, ref sFlags, ref endPoint, out pInfo);
             }
             catch (System.ObjectDisposedException)
             {
@@ -254,18 +256,21 @@ namespace Xb.Net
                 var bytes = new byte[length];
                 Array.Copy(sset.ReceiveBuffer, 0, bytes, 0, length);
 
-                // * UDP is connection-less, CANNOT GET remote end-point info *
-                Xb.Util.Out($"Recieved {bytes.Length.ToString()} bytes: {BitConverter.ToString(bytes)}");
-                this.OnRecieved?.Invoke(this, bytes);
+                var remoteData = new RemoteData((IPEndPoint)endPoint, bytes);
+                Xb.Util.Out($"Recieved from {remoteData.RemoteEndPoint.Address}, {bytes.Length} bytes: {BitConverter.ToString(bytes)}");
+                this.OnRecieved?.Invoke(this, remoteData);
             }
 
             try
             {
-                this._socket.BeginReceive(
+                // THANKS bidasknakayama!
+                // Remote info could be acquired on UDP.
+                this._socket.BeginReceiveMessageFrom(
                     sset.ReceiveBuffer,
                     0,
                     sset.ReceiveBuffer.Length,
                     SocketFlags.None,
+                    ref endPoint,
                     this.OnRecievedPrivate,
                     sset);
             }
@@ -389,15 +394,17 @@ namespace Xb.Net
         /// <param name="remoteEndPoint"></param>
         /// <param name="timeoutSeconds"></param>
         /// <returns></returns>
-        public async Task<byte[]> SendAndRecieveAsync(byte[] bytes, IPEndPoint remoteEndPoint, int timeoutSeconds = 30)
+        public async Task<RemoteData> SendAndRecieveAsync(byte[] bytes, IPEndPoint remoteEndPoint, int timeoutSeconds = 30)
         {
+            var a = 1;
+
             return await Task.Run(() =>
             {
-                byte[] result = null;
+                RemoteData result = null;
 
-                var handler = new EventHandler<byte[]>((object sender, byte[] remoteBytes) =>
+                var handler = new EventHandler<RemoteData>((object sender, RemoteData rdata) =>
                 {
-                    result = remoteBytes;
+                    result = rdata;
                 });
 
                 this.OnRecieved += handler;
@@ -447,7 +454,7 @@ namespace Xb.Net
         /// <param name="remotePort"></param>
         /// <param name="timeoutSeconds"></param>
         /// <returns></returns>
-        public async Task<byte[]> SendAndRecieveAsync(byte[] bytes, IPAddress remoteIpAddress, int remotePort, int timeoutSeconds = 30)
+        public async Task<RemoteData> SendAndRecieveAsync(byte[] bytes, IPAddress remoteIpAddress, int remotePort, int timeoutSeconds = 30)
         {
             var remoteEndPoint = new IPEndPoint(remoteIpAddress, remotePort);
             return await this.SendAndRecieveAsync(bytes, remoteEndPoint, timeoutSeconds);
@@ -459,7 +466,7 @@ namespace Xb.Net
         /// <param name="bytes"></param>
         /// <param name="timeoutSeconds"></param>
         /// <returns></returns>
-        public async Task<byte[]> SendAndRecieveAsync(byte[] bytes, int timeoutSeconds = 30)
+        public async Task<RemoteData> SendAndRecieveAsync(byte[] bytes, int timeoutSeconds = 30)
         {
             if (this.RemotePort == 0
                 || this.RemoteIpAddress == IPAddress.Any

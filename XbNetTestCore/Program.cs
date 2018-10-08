@@ -51,21 +51,21 @@ namespace XbNetTestCore
         static async Task<bool> UdpServerAndClientTest()
         {
             var udp = new Xb.Net.Udp(10241);
-            udp.OnRecieved += (object e, byte[] bytes) =>
+            udp.OnRecieved += (object e, Xb.Net.RemoteData rdata) =>
             {
                 System.Diagnostics.Debug.WriteLine("Server recieved:");
-                System.Diagnostics.Debug.WriteLine(BitConverter.ToString(bytes));
+                System.Diagnostics.Debug.WriteLine(BitConverter.ToString(rdata.Bytes));
 
-                udp.SendTo(new byte[] { 0x31, 0x32, 0x33 }, new IPAddress(bytes.Take(4).ToArray()), bytes[4]);
+                udp.SendTo(new byte[] { 0x31, 0x32, 0x33 }, new IPAddress(rdata.Bytes.Take(4).ToArray()), rdata.Bytes[4]);
             };
 
             var udp2 = new Xb.Net.Udp(IPAddress.Parse("192.168.254.90"), 10241, 81);
             var result = await udp2.SendAndRecieveAsync(new byte[] { 192, 168, 254, 90, 81 });
 
-            udp2.OnRecieved += (object e, byte[] bytes) => 
+            udp2.OnRecieved += (object e, Xb.Net.RemoteData rdata) => 
             {
                 System.Diagnostics.Debug.WriteLine("Client recieved:");
-                System.Diagnostics.Debug.WriteLine(BitConverter.ToString(bytes));
+                System.Diagnostics.Debug.WriteLine(BitConverter.ToString(rdata.Bytes));
             };
 
             udp.SendTo(new byte[] { 0x00, 0x01, 0x01 }, IPAddress.Broadcast, 81);
@@ -111,10 +111,10 @@ namespace XbNetTestCore
         {
             var udp = new Xb.Net.Udp(1026);
 
-            udp.OnRecieved += (object e, byte[] bytes) =>
+            udp.OnRecieved += (object e, Xb.Net.RemoteData rdata) =>
             {
                 Debug.WriteLine($"Recieved.");
-                Debug.WriteLine(bytes);
+                Debug.WriteLine(rdata.Bytes);
 
                 var value = new byte[] { 11, 22, 33, 44 };
                 //udp.Send(value);

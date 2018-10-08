@@ -336,8 +336,8 @@ namespace Xb.Net
 
                 if (bytes.Length > 0)
                 {
-                    Xb.Util.Out($"Recieved from {((IPEndPoint)sset.Socket.RemoteEndPoint).Address}, {bytes.Length} bytes: {BitConverter.ToString(bytes)}");
                     var remoteData = new RemoteData((IPEndPoint)sset.Socket.RemoteEndPoint, bytes);
+                    Xb.Util.Out($"Recieved from {remoteData.RemoteEndPoint.Address}, {bytes.Length} bytes: {BitConverter.ToString(bytes)}");
                     this.OnRecieved?.Invoke(this, remoteData);
                 }
                 else
