@@ -18,9 +18,9 @@ namespace XbNetTestCore
             //    .GetAwaiter()
             //    .GetResult();
 
-            UdpServerAndClientTest()
-                .GetAwaiter()
-                .GetResult();
+            //UdpServerAndClientTest()
+            //    .GetAwaiter()
+            //    .GetResult();
 
             //TcpServerTest();
 
@@ -29,6 +29,18 @@ namespace XbNetTestCore
             //UdpClientClassTest();
 
             // SubnetTest();
+
+            GetLocalPrimaryAddressTest()
+                .GetAwaiter()
+                .GetResult();
+        }
+
+        static async Task<bool> GetLocalPrimaryAddressTest()
+        {
+            var addr = Xb.Net.Util.GetLocalPrimaryAddress();
+
+
+            return true;
         }
 
         static async Task<bool> TcpServerAndClientTest()

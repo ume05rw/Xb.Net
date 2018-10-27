@@ -234,8 +234,17 @@ namespace Xb.Net
                 .Select(i => i.GetIPProperties())
                 .FirstOrDefault(p => p.GatewayAddresses.Count > 0);
 
-            return (prop != null)
-                ? prop.UnicastAddresses[0].Address
+            if (prop == null)
+                return null;
+
+            var v4Addr = prop.UnicastAddresses
+                .Select(ua => ua.Address)
+                .Where(addr => addr.AddressFamily == AddressFamily.InterNetwork
+                                && !IPAddress.IsLoopback(addr))
+                .FirstOrDefault();
+
+            return (v4Addr != null)
+                ? v4Addr
                 : null;
         }
     }
