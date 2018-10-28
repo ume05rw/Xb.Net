@@ -114,6 +114,28 @@ namespace Xb.Net
         }
 
         /// <summary>
+        /// Get the local address, v4 and v6
+        /// </summary>
+        /// <returns></returns>
+        public static IPAddress[] GetLocalAddresses()
+        {
+            try
+            {
+                //get v4 and v6-address
+                return NetworkInterface
+                    .GetAllNetworkInterfaces()
+                    .SelectMany(i => i.GetIPProperties().UnicastAddresses)
+                    .Select(ua => ua.Address)
+                    .Where(addr => !IPAddress.IsLoopback(addr))
+                    .ToArray();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Get the local IPv4 address.
         /// </summary>
         /// <returns></returns>
