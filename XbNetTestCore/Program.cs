@@ -167,31 +167,31 @@ namespace XbNetTestCore
             var a = Xb.Net.Util.GetDefaultGateway();
             var b = Xb.Net.Util.GetLocalPrimaryAddress();
 
-            //var props = NetworkInterface
-            //        .GetAllNetworkInterfaces()
-            //        .Select(i => i.GetIPProperties());
+            var props = NetworkInterface
+                    .GetAllNetworkInterfaces()
+                    .Select(i => i.GetIPProperties());
 
-            //foreach (var prop in props)
-            //{
-            //    foreach (var uaddr in prop.UnicastAddresses)
-            //    {
-            //        Debug.WriteLine($"Address: {uaddr.Address}");
-            //        Debug.WriteLine($"Mask: {BitConverter.ToString(uaddr.IPv4Mask.GetAddressBytes())}");
+            foreach (var prop in props)
+            {
+                foreach (var uaddr in prop.UnicastAddresses)
+                {
+                    Debug.WriteLine($"Address: {uaddr.Address}");
+                    Debug.WriteLine($"Mask: {BitConverter.ToString(uaddr.IPv4Mask.GetAddressBytes())}");
 
-            //        var maskArray = uaddr.IPv4Mask
-            //            .GetAddressBytes()
-            //            .Select(b => Convert.ToString((int)b, 2).PadLeft(8, '0'));
-            //        var maskString = string.Join("", maskArray);
-            //        var idx = maskString.IndexOf('0');
-            //        Debug.WriteLine($"Mask Length: {idx}");
+                    var maskArray = uaddr.IPv4Mask
+                        .GetAddressBytes()
+                        .Select(bt => Convert.ToString((int)bt, 2).PadLeft(8, '0'));
+                    var maskString = string.Join("", maskArray);
+                    var idx = maskString.IndexOf('0');
+                    Debug.WriteLine($"Mask Length: {idx}");
 
-            //    }
+                }
 
-            //    foreach (var gaddr in prop.GatewayAddresses)
-            //    {
-            //        Debug.WriteLine($"Gateway: {gaddr.Address}");
-            //    }
-            //}
+                foreach (var gaddr in prop.GatewayAddresses)
+                {
+                    Debug.WriteLine($"Gateway: {gaddr.Address}");
+                }
+            }
         }
     }
 }

@@ -494,9 +494,15 @@ namespace Xb.Net
                         if (this._socket != null)
                         {
                             if (this._socket.Connected)
+                            {
+                                this._socket.Shutdown(SocketShutdown.Both);
+                                this._socket.Close();
                                 this._socket.Dispose();
-
-                            this._socket.Dispose();
+                            }
+                            else
+                            {
+                                this._socket.Dispose();
+                            }
                         }
                     }
                     catch (Exception ex)
