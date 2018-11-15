@@ -30,9 +30,32 @@ namespace XbNetTestCore
 
             // SubnetTest();
 
-            GetLocalPrimaryAddressTest()
+            //GetLocalPrimaryAddressTest()
+            //    .GetAwaiter()
+            //    .GetResult();
+
+            //GetV4AddressRangeOnLanTest()
+            //    .GetAwaiter()
+            //    .GetResult();
+
+            GetV4ActiveAddressSetOnLanTest()
                 .GetAwaiter()
                 .GetResult();
+        }
+
+        static async Task<bool> GetV4ActiveAddressSetOnLanTest()
+        {
+            var addrs = await Xb.Net.Util.GetV4ActiveAddressSetOnLan();
+
+            return true;
+        }
+
+        static async Task<bool> GetV4AddressRangeOnLanTest()
+        {
+            var addrs = Xb.Net.Util.GetV4AddressRangeOnLan();
+
+
+            return true;
         }
 
         static async Task<bool> GetLocalPrimaryAddressTest()

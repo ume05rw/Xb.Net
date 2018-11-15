@@ -5,6 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Threading.Tasks;
+using SharpPcap;
+using SharpPcap.LibPcap;
 
 namespace Xb.Net
 {
@@ -268,6 +271,129 @@ namespace Xb.Net
             return (v4Addr != null)
                 ? v4Addr
                 : null;
+        }
+
+        public static IPAddress[] GetV4AddressRangeOnLan()
+        {
+            var result = new List<IPAddress>();
+            var prop = NetworkInterface
+                .GetAllNetworkInterfaces()
+                .Select(i => i.GetIPProperties())
+                .FirstOrDefault(p => p.GatewayAddresses.Count > 0);
+
+            if (prop == null)
+                return result.ToArray();
+
+            var v4ua = prop.UnicastAddresses
+                .Where(ua => ua.Address.AddressFamily == AddressFamily.InterNetwork
+                                && !IPAddress.IsLoopback(ua.Address))
+                .FirstOrDefault();
+
+            if (v4ua == null)
+                return result.ToArray();
+
+            var addrBytes = v4ua.Address.GetAddressBytes();
+            var maskBytes = v4ua.IPv4Mask.GetAddressBytes();
+
+            if (addrBytes.Length != 4)
+                return result.ToArray();
+
+            var netAddrBytes = new byte[addrBytes.Length];
+            var broAddrBytes = new byte[addrBytes.Length];
+
+            for(var i = 0; i < addrBytes.Length; i++)
+            {
+                netAddrBytes[i] = (byte)(addrBytes[i] & (maskBytes[i]));
+                broAddrBytes[i] = (byte)(addrBytes[i] | (maskBytes[i] ^ 255));
+            }
+
+            Array.Reverse(netAddrBytes);
+            Array.Reverse(broAddrBytes);
+
+            var startUInt = BitConverter.ToUInt32(netAddrBytes, 0);
+            var endUInt = BitConverter.ToUInt32(broAddrBytes, 0);
+
+            for (var addrUInt = startUInt; addrUInt <= endUInt; addrUInt++)
+            {
+                var bytes = BitConverter.GetBytes(addrUInt);
+                Array.Reverse(bytes);
+                result.Add(new IPAddress(bytes));
+            }
+
+            return result.ToArray(); ;
+        }
+
+        public static async Task<AddressSet[]> GetV4ActiveAddressSetOnLan()
+        {
+            var range = Util.GetV4AddressRangeOnLan();
+            var result = new List<AddressSet>();
+            var tasks = new List<Task>();
+
+            var device = Util.GetDevice(Util.GetLocalPrimaryAddress());
+            if (device == null)
+                return result.ToArray();
+
+            await Task.Run(() => {
+                foreach (var addr in range)
+                {
+                    // 下記を並列で実行すると落ちる。
+                    // 一つ一つ順次取得するしかない。
+                    var arp = new ARP(device);
+                    arp.Timeout = new TimeSpan(3000000); //300msec
+                    var mac = arp.Resolve(addr);
+                    if (mac != null)
+                    {
+                        var addrSet = new AddressSet();
+                        addrSet.IPAddress = addr;
+                        addrSet.MacAddress = mac.GetAddressBytes();
+                        result.Add(addrSet);
+                    }
+                }
+            });
+
+            return result.ToArray();
+        }
+
+        private static LibPcapLiveDevice GetDevice(IPAddress address)
+        {
+            var addrBytes = address.GetAddressBytes();
+            var devices = LibPcapLiveDeviceList.Instance;
+            LibPcapLiveDevice device = null;
+            foreach (var dev in devices)
+            {
+                foreach (var addr in dev.Addresses)
+                {
+                    if (addr.Addr.ipAddress != null)
+                    {
+                        if (addr.Addr.ipAddress.GetAddressBytes().SequenceEqual(addrBytes))
+                        {
+                            device = dev;
+                            break;
+                        }
+                    }
+                }
+
+                if (device != null)
+                    break;
+            }
+
+            return device;
+        }
+    }
+
+    public class AddressSet
+    {
+        public IPAddress IPAddress { get; set; }
+        public byte[] MacAddress { get; set; }
+
+        public string MacAddressString
+        {
+            get
+            {
+                return (this.MacAddress == null)
+                    ? null
+                    : BitConverter.ToString(this.MacAddress);
+            }
         }
     }
 }
