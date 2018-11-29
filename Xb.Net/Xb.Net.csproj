@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>Xamarin &amp; .NET Core Ready, Tcp and Udp socket async-implementation and Utilities.</Description>
-    <Version>1.0.5</Version>
+    <Version>1.0.5.1</Version>
     <Authors>Do-Be's</Authors>
     <PackageLicenseUrl>https://github.com/ume05rw/Xb.Net/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/ume05rw/Xb.Net</PackageProjectUrl>
@@ -12,7 +12,7 @@
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>ja</NeutralLanguage>
     <Copyright>Do-Be's</Copyright>
-    <PackageReleaseNotes>Fix Util.GetLocalPrimaryAddress(), Get always v4 address.</PackageReleaseNotes>
+    <PackageReleaseNotes></PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 

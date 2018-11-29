@@ -33,7 +33,14 @@ namespace Xb.Net
                 socket.Bind(localEndPoint);
                 socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, isBroadcast);
                 socket.SendTo(bytes, remoteEndPoint);
-                socket.Shutdown(SocketShutdown.Both);
+                try
+                {
+                    // Do Not to call shutdown?
+                    socket.Shutdown(SocketShutdown.Both);
+                }
+                catch (Exception)
+                {
+                }
             }
         }
 
@@ -495,7 +502,14 @@ namespace Xb.Net
                         {
                             if (this._socket.Connected)
                             {
-                                this._socket.Shutdown(SocketShutdown.Both);
+                                try
+                                {
+                                    // Do Not to call shutdown?
+                                    this._socket.Shutdown(SocketShutdown.Both);
+                                }
+                                catch (Exception)
+                                {
+                                }
                                 this._socket.Close();
                                 this._socket.Dispose();
                             }
