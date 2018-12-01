@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -33,14 +34,7 @@ namespace Xb.Net
                 socket.Bind(localEndPoint);
                 socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, isBroadcast);
                 socket.SendTo(bytes, remoteEndPoint);
-                try
-                {
-                    // Do Not to call shutdown?
-                    socket.Shutdown(SocketShutdown.Both);
-                }
-                catch (Exception)
-                {
-                }
+                socket.Close();
             }
         }
 
@@ -252,6 +246,7 @@ namespace Xb.Net
             catch (System.ObjectDisposedException)
             {
                 // Recieve-Socket disposed
+                Xb.Util.Out($"Recieve Socket disposed");
                 return;
             }
 
@@ -403,8 +398,6 @@ namespace Xb.Net
         /// <returns></returns>
         public async Task<RemoteData> SendAndRecieveAsync(byte[] bytes, IPEndPoint remoteEndPoint, int timeoutSeconds = 30)
         {
-            var a = 1;
-
             return await Task.Run(() =>
             {
                 RemoteData result = null;
@@ -432,6 +425,9 @@ namespace Xb.Net
                     while (true)
                     {
                         System.Threading.Thread.Sleep(100);
+
+                        if (this.IsDisposed)
+                            break;
 
                         if (result != null)
                             break;
@@ -502,21 +498,11 @@ namespace Xb.Net
                         {
                             if (this._socket.Connected)
                             {
-                                try
-                                {
-                                    // Do Not to call shutdown?
-                                    this._socket.Shutdown(SocketShutdown.Both);
-                                }
-                                catch (Exception)
-                                {
-                                }
+                                // Do Not to call shutdown on UDP
+                                //this._socket.Shutdown(SocketShutdown.Both);
                                 this._socket.Close();
-                                this._socket.Dispose();
                             }
-                            else
-                            {
-                                this._socket.Dispose();
-                            }
+                            this._socket.Dispose();
                         }
                     }
                     catch (Exception ex)
